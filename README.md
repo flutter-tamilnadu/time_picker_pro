@@ -8,9 +8,13 @@ A highly customizable, high-precision custom clock time picker for Flutter featu
 
 ---
 
-## Showcase Mockups
+## Showcase Screenshots
 
-![Time Picker Pro Showcases](assets/time_picker_mockup.png)
+<p align="center">
+  <img src="assets/time_picker_defualt.png" width="45%" alt="Default Clock Theme" />
+  &nbsp;&nbsp;&nbsp;&nbsp;
+  <img src="assets/time_picker_custom.png" width="45%" alt="Highly Customized Theme" />
+</p>
 
 ---
 
