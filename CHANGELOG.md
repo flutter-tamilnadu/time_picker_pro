@@ -1,3 +1,7 @@
+## 0.0.5
+
+* Showcase all 5 screenshots and both interactive video demonstrations in README grid.
+
 ## 0.0.4
 
 * Use relative asset paths in README to fix broken screenshot rendering on pub.dev.

@@ -19,12 +19,27 @@ This package fills that gap:
 
 ---
 
-## Showcase Screenshots
+## Showcase Screenshots & Videos
 
+### Interactive Video Demonstrations
 <p align="center">
-  <img src="assets/screenshot_1.png" width="45%" alt="Default Clock Theme" />
+  <video src="assets/video_1.mp4" width="45%" controls></video>
   &nbsp;&nbsp;&nbsp;&nbsp;
-  <img src="assets/screenshot_3.png" width="45%" alt="Highly Customized Theme" />
+  <video src="assets/video_2.mp4" width="45%" controls></video>
+</p>
+
+### Clock Dial Themes
+<p align="center">
+  <img src="assets/screenshot_1.png" width="30%" alt="Clean White Theme" />
+  &nbsp;&nbsp;
+  <img src="assets/screenshot_2.png" width="30%" alt="Light Theme Selection" />
+  &nbsp;&nbsp;
+  <img src="assets/screenshot_3.png" width="30%" alt="Sleek Dark Mode Theme" />
+</p>
+<p align="center">
+  <img src="assets/screenshot_4.png" width="30%" alt="Custom Light Dial Style" />
+  &nbsp;&nbsp;
+  <img src="assets/screenshot_5.png" width="30%" alt="Concentric 24-Hour Dial" />
 </p>
 
 ---
