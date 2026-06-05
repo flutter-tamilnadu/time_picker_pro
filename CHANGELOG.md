@@ -1,3 +1,7 @@
+## 0.0.4
+
+* Use relative asset paths in README to fix broken screenshot rendering on pub.dev.
+
 ## 0.0.3
 
 * Add `TimePickerStyle.modernCard` layout option (analog clock with physical tapered hands).
