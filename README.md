@@ -23,9 +23,9 @@ This package fills that gap:
 
 ### Interactive Video Demonstrations
 <p align="center">
-  <video src="assets/video_1.mp4" width="45%" controls></video>
+  <video src="https://raw.githubusercontent.com/flutter-tamilnadu/time_picker_pro/main/assets/video_1.mp4" width="45%" controls></video>
   &nbsp;&nbsp;&nbsp;&nbsp;
-  <video src="assets/video_2.mp4" width="45%" controls></video>
+  <video src="https://raw.githubusercontent.com/flutter-tamilnadu/time_picker_pro/main/assets/video_2.mp4" width="45%" controls></video>
 </p>
 
 ### Clock Dial Themes

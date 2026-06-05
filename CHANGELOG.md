@@ -1,3 +1,7 @@
+## 0.0.6
+
+* Use absolute raw GitHub URLs for video tags in README to ensure compatibility across all markdown renders.
+
 ## 0.0.5
 
 * Showcase all 5 screenshots and both interactive video demonstrations in README grid.
