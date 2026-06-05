@@ -1,0 +1,20 @@
+name: time_picker_pro_example
+description: "Demonstrates how to use the time_picker_pro package."
+publish_to: 'none'
+
+environment:
+  sdk: ^3.11.0
+  flutter: ">=1.17.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+  time_picker_pro:
+    path: ../
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+
+flutter:
+  uses-material-design: true
