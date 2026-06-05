@@ -8,6 +8,17 @@ A highly customizable, high-precision custom clock time picker for Flutter featu
 
 ---
 
+## Why Time Picker Pro?
+
+While Flutter includes a default `showTimePicker` built-in, it lacks native support for **seconds selection**. 
+
+This package fills that gap:
+- ⏱️ **Adds Precision Seconds Selection**: Seamlessly integrated into a familiar, high-performance clock dial interface.
+- 🪶 **Zero Bloatware / Pure Dart**: Built entirely in pure Dart and Flutter (using custom gestures and `CustomPaint`/`Canvas`). It has **zero native dependencies** and a very tiny package size, keeping your application bundle light.
+- 🎨 **Unlimited Customization**: Allows deep configuration (titles, alignments, active/inactive fonts, border radiuses, custom clock hand, and pointer bubble paint colors) that the default Flutter time picker does not easily expose.
+
+---
+
 ## Showcase Screenshots
 
 <p align="center">
