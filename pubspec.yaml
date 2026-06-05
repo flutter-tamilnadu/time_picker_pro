@@ -6,10 +6,16 @@ repository: https://github.com/flutter-tamilnadu/time_picker_pro
 issue_tracker: https://github.com/flutter-tamilnadu/time_picker_pro/issues
 
 screenshots:
-  - description: "Default light-theme time picker showing hours, minutes, and seconds."
-    path: assets/time_picker_defualt.png
-  - description: "Customized dark-themed time picker showing seconds."
-    path: assets/time_picker_custom.png
+  - description: "Modern white themed clock time picker dialog."
+    path: assets/screenshot_1.png
+  - description: "Light themed custom color selection on ClockTimePicker."
+    path: assets/screenshot_2.png
+  - description: "Vibrant dark theme clock time picker layout."
+    path: assets/screenshot_3.png
+  - description: "Standard white theme style with subtle radial highlight."
+    path: assets/screenshot_4.png
+  - description: "Customized hours and minutes pointer styles in dark mode."
+    path: assets/screenshot_5.png
 
 environment:
   sdk: ^3.11.0
@@ -22,6 +28,7 @@ dependencies:
 dev_dependencies:
   flutter_test:
     sdk: flutter
+  flutter_lints: ^3.0.0
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec

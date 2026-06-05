@@ -293,7 +293,7 @@ class _ClockTimePickerState extends State<ClockTimePicker> {
 
   @override
   Widget build(BuildContext context) {
-    final Size dialSize = const Size(260, 260);
+    const Size dialSize = Size(260, 260);
 
     final hStyle = _theme.headerTimeStyle ??
         TextStyle(
@@ -366,34 +366,22 @@ class _ClockTimePickerState extends State<ClockTimePicker> {
             const SizedBox(height: 12),
 
             // Huge digital display at top (Interactive Segments)
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                GestureDetector(
-                  onTap: () {
-                    HapticFeedback.lightImpact();
-                    setState(() => _currentMode = PickerMode.hour);
-                  },
-                  child: Text(
-                    _formattedHour,
-                    style: _currentMode == PickerMode.hour ? activeStyle : inactiveStyle,
+            FittedBox(
+              fit: BoxFit.scaleDown,
+              alignment: Alignment.center,
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  GestureDetector(
+                    onTap: () {
+                      HapticFeedback.lightImpact();
+                      setState(() => _currentMode = PickerMode.hour);
+                    },
+                    child: Text(
+                      _formattedHour,
+                      style: _currentMode == PickerMode.hour ? activeStyle : inactiveStyle,
+                    ),
                   ),
-                ),
-                Text(
-                  ":",
-                  style: inactiveStyle,
-                ),
-                GestureDetector(
-                  onTap: () {
-                    HapticFeedback.lightImpact();
-                    setState(() => _currentMode = PickerMode.minute);
-                  },
-                  child: Text(
-                    _formattedMinute,
-                    style: _currentMode == PickerMode.minute ? activeStyle : inactiveStyle,
-                  ),
-                ),
-                if (widget.showSeconds) ...[
                   Text(
                     ":",
                     style: inactiveStyle,
@@ -401,15 +389,31 @@ class _ClockTimePickerState extends State<ClockTimePicker> {
                   GestureDetector(
                     onTap: () {
                       HapticFeedback.lightImpact();
-                      setState(() => _currentMode = PickerMode.second);
+                      setState(() => _currentMode = PickerMode.minute);
                     },
                     child: Text(
-                      _formattedSecond,
-                      style: _currentMode == PickerMode.second ? activeStyle : inactiveStyle,
+                      _formattedMinute,
+                      style: _currentMode == PickerMode.minute ? activeStyle : inactiveStyle,
                     ),
                   ),
+                  if (widget.showSeconds) ...[
+                    Text(
+                      ":",
+                      style: inactiveStyle,
+                    ),
+                    GestureDetector(
+                      onTap: () {
+                        HapticFeedback.lightImpact();
+                        setState(() => _currentMode = PickerMode.second);
+                      },
+                      child: Text(
+                        _formattedSecond,
+                        style: _currentMode == PickerMode.second ? activeStyle : inactiveStyle,
+                      ),
+                    ),
+                  ],
                 ],
-              ],
+              ),
             ),
 
             const SizedBox(height: 8),

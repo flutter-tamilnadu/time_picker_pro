@@ -258,7 +258,7 @@ class ClockHandPainter extends CustomPainter {
     if (theme.showGlow) {
       final shadowPaint = Paint()
         ..color = Colors.black.withOpacity(0.25)
-        ..maskFilter = MaskFilter.blur(BlurStyle.normal, 4.0);
+        ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 4.0);
       canvas.drawCircle(center + const Offset(0, 1.5), pinRadius, shadowPaint);
     }
 

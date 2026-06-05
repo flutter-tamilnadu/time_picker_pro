@@ -106,7 +106,7 @@ class ClockDialPainter extends CustomPainter {
 
     for (int i = 0; i < 12; i++) {
       final startAngle = i * segmentAngle - pi / 2 + gapAngle / 2;
-      final sweepAngle = segmentAngle - gapAngle;
+      const sweepAngle = segmentAngle - gapAngle;
       canvas.drawArc(rect, startAngle, sweepAngle, false, trackPaint);
     }
   }

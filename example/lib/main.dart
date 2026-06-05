@@ -154,12 +154,13 @@ class _DemoHomeScreenState extends State<DemoHomeScreen> {
         backgroundColor: Colors.transparent,
         elevation: 0,
         child: ClockTimePicker(
+          use24HourFormat : true,
           initialTime: _time6,
           theme: ClockPickerThemeData.dark(),
           showSeconds: true,
           title: "Dark Theme Time Picker",
           subtitle: "White",
-          description: "Sleek Dark Mode Theme\nNeon glowing clock hand accents",
+          description: "Sleek  Dark Mode Theme\nNeon glowing clock hand accents",
           onTimeChanged: (time) {
             setState(() {
               _time6 = time;

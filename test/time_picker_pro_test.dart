@@ -160,5 +160,30 @@ void main() {
       expect(selectedTime!.minute, 9);
       expect(selectedTime!.second, 0);
     });
+
+    testWidgets('ClockTimePicker loads custom colors from parent widget theme successfully', (WidgetTester tester) async {
+      final customTheme = ClockPickerThemeData.light().copyWith(
+        hourHandColor: Colors.purple,
+        clockFaceBackgroundColor: Colors.orange,
+      );
+
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: ClockTimePicker(
+              initialTime: const TimeOfDayWithSeconds(hour: 10, minute: 9, second: 0),
+              theme: customTheme,
+            ),
+          ),
+        ),
+      );
+
+      final pickerFinder = find.byType(ClockTimePicker);
+      expect(pickerFinder, findsOneWidget);
+
+      final pickerWidget = tester.widget<ClockTimePicker>(pickerFinder);
+      expect(pickerWidget.theme?.hourHandColor, Colors.purple);
+      expect(pickerWidget.theme?.clockFaceBackgroundColor, Colors.orange);
+    });
   });
 }
