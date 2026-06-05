@@ -1,3 +1,11 @@
+## 0.0.3
+
+* Add `TimePickerStyle.modernCard` layout option (analog clock with physical tapered hands).
+* Add central clock display showing digital time and period name (Morning, Afternoon, Evening, Night).
+* Add ambient back-light glow behind the clock hands.
+* Implement smart drag-proximity detection to automatically select hands (Hour/Minute/Second) on touch.
+* Update showcase example with interactive light/dark theme demo.
+
 ## 0.0.2
 
 * Fix package screenshots showing on pub.dev.
