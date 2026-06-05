@@ -108,5 +108,55 @@ void main() {
       expect(selectedTime!.minute, 15);
       expect(selectedTime!.second, 30);
     });
+
+    testWidgets('Renders properly in modernCard style and handles confirm', (WidgetTester tester) async {
+      TimeOfDayWithSeconds? selectedTime;
+
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: Builder(
+              builder: (context) {
+                return ElevatedButton(
+                  onPressed: () {
+                    showDialog(
+                      context: context,
+                      builder: (context) => CustomTimePicker(
+                        pickerStyle: TimePickerStyle.modernCard,
+                        initialTime: const TimeOfDayWithSeconds(hour: 10, minute: 9, second: 0),
+                        showSeconds: true,
+                        onTimeSelected: (time) {
+                          selectedTime = time;
+                        },
+                      ),
+                    );
+                  },
+                  child: const Text('Open Modern Picker'),
+                );
+              },
+            ),
+          ),
+        ),
+      );
+
+      // Open the dialog
+      await tester.tap(find.text('Open Modern Picker'));
+      await tester.pumpAndSettle();
+
+      // Verify modern layout elements are drawn
+      expect(find.text('10'), findsOneWidget); 
+      expect(find.text('09'), findsOneWidget);
+      expect(find.text('CONFIRM'), findsOneWidget);
+
+      // Tap CONFIRM
+      await tester.tap(find.text('CONFIRM'));
+      await tester.pumpAndSettle();
+
+      // Verify the selected time
+      expect(selectedTime, isNotNull);
+      expect(selectedTime!.hour, 10);
+      expect(selectedTime!.minute, 9);
+      expect(selectedTime!.second, 0);
+    });
   });
 }

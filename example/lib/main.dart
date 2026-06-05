@@ -69,6 +69,7 @@ class _DemoHomeScreenState extends State<DemoHomeScreen> {
   TimeOfDayWithSeconds _time2 = const TimeOfDayWithSeconds(hour: 15, minute: 45, second: 30);
   TimeOfDayWithSeconds _time3 = const TimeOfDayWithSeconds(hour: 22, minute: 10, second: 15);
   TimeOfDayWithSeconds _time4 = const TimeOfDayWithSeconds(hour: 17, minute: 15, second: 45);
+  TimeOfDayWithSeconds _time5 = const TimeOfDayWithSeconds(hour: 10, minute: 9, second: 0);
 
   void _showStandardPicker() {
     showDialog(
@@ -110,6 +111,25 @@ class _DemoHomeScreenState extends State<DemoHomeScreen> {
         onTimeSelected: (time) {
           setState(() {
             _time4 = time;
+          });
+        },
+      ),
+    );
+  }
+
+  void _showModernAnalogPicker() {
+    showDialog(
+      context: context,
+      builder: (context) => CustomTimePicker(
+        initialTime: _time5,
+        showSeconds: true,
+        pickerStyle: TimePickerStyle.modernCard,
+        titleText: widget.themeMode == ThemeMode.light 
+            ? "White Theme Time Picker" 
+            : "Dark Theme Time Picker",
+        onTimeSelected: (time) {
+          setState(() {
+            _time5 = time;
           });
         },
       ),
@@ -278,6 +298,15 @@ class _DemoHomeScreenState extends State<DemoHomeScreen> {
                         use24HourDisplay: true,
                         color: Colors.tealAccent,
                         onTap: _show24HourPicker,
+                      ),
+                      const SizedBox(height: 16),
+                      _buildShowcaseCard(
+                        title: 'Modern Analog Card Mode',
+                        subtitle: 'Sleek physical tapered hands layout',
+                        time: _time5,
+                        hasSeconds: true,
+                        color: Colors.blueAccent,
+                        onTap: _showModernAnalogPicker,
                       ),
                       const SizedBox(height: 16),
                       _buildShowcaseCard(

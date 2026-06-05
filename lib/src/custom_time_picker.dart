@@ -4,14 +4,16 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'time_of_day_with_seconds.dart';
 
-// Define enum outside the widget so it's accessible everywhere
+// Define enums outside the widget so they are accessible everywhere
 enum PickerMode { hour, minute, second }
+enum TimePickerStyle { standard, modernCard }
 
 class CustomTimePicker extends StatefulWidget {
   final Function(TimeOfDayWithSeconds) onTimeSelected;
   final TimeOfDayWithSeconds? initialTime;
   final bool showSeconds;
   final bool use24HourFormat;
+  final TimePickerStyle pickerStyle;
 
   // Title customization
   final String? titleText;
@@ -27,6 +29,11 @@ class CustomTimePicker extends StatefulWidget {
   final TextStyle? separatorStyle;
   final TextStyle? amPmTextStyle;
   final TextStyle? activeAmPmTextStyle;
+
+  // Center display customization for modernCard style
+  final TextStyle? centerLabelStyle;
+  final TextStyle? centerTimeStyle;
+  final TextStyle? centerPeriodStyle;
 
   // Shapes & borders customization
   final BorderRadius? borderRadius;
@@ -51,6 +58,7 @@ class CustomTimePicker extends StatefulWidget {
     this.initialTime,
     this.showSeconds = false,
     this.use24HourFormat = false,
+    this.pickerStyle = TimePickerStyle.standard,
     this.titleText,
     this.titleStyle,
     this.titleAlignment,
@@ -62,6 +70,9 @@ class CustomTimePicker extends StatefulWidget {
     this.separatorStyle,
     this.amPmTextStyle,
     this.activeAmPmTextStyle,
+    this.centerLabelStyle,
+    this.centerTimeStyle,
+    this.centerPeriodStyle,
     this.borderRadius,
     this.segmentBorderRadius,
     this.primaryColor,
@@ -126,11 +137,152 @@ class _CustomTimePickerState extends State<CustomTimePicker> {
     _currentMode = PickerMode.hour;
   }
 
+  Widget _buildModernDigitalDisplay() {
+    final theme = Theme.of(context);
+    final primaryColor = widget.primaryColor ?? theme.colorScheme.primary;
+
+    final double fontSize = widget.showSeconds ? 34 : 48;
+
+    final activeStyle = TextStyle(
+      fontSize: fontSize,
+      fontWeight: FontWeight.w400,
+      color: primaryColor,
+    );
+    final inactiveStyle = TextStyle(
+      fontSize: fontSize,
+      fontWeight: FontWeight.w200,
+      color: widget.textColor ?? theme.colorScheme.onSurface,
+    );
+    final separatorStyle = TextStyle(
+      fontSize: fontSize,
+      fontWeight: FontWeight.w200,
+      color: (widget.textColor ?? theme.colorScheme.onSurface).withOpacity(0.3),
+    );
+
+    final hh = _selectedHour.toString().padLeft(2, '0');
+    final mm = _selectedMinute.toString().padLeft(2, '0');
+    final ss = _selectedSecond.toString().padLeft(2, '0');
+
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        GestureDetector(
+          onTap: () {
+            HapticFeedback.selectionClick();
+            setState(() => _currentMode = PickerMode.hour);
+          },
+          child: Text(
+            hh,
+            style: _currentMode == PickerMode.hour ? activeStyle : inactiveStyle,
+          ),
+        ),
+        Text(":", style: separatorStyle),
+        GestureDetector(
+          onTap: () {
+            HapticFeedback.selectionClick();
+            setState(() => _currentMode = PickerMode.minute);
+          },
+          child: Text(
+            mm,
+            style: _currentMode == PickerMode.minute ? activeStyle : inactiveStyle,
+          ),
+        ),
+        if (widget.showSeconds) ...[
+          Text(":", style: separatorStyle),
+          GestureDetector(
+            onTap: () {
+              HapticFeedback.selectionClick();
+              setState(() => _currentMode = PickerMode.second);
+            },
+            child: Text(
+              ss,
+              style: _currentMode == PickerMode.second ? activeStyle : inactiveStyle,
+            ),
+          ),
+        ],
+      ],
+    );
+  }
+
+  void _selectModeFromTouch(Offset localPosition, Size size) {
+    final center = Offset(size.width / 2, size.height / 2);
+    final dx = localPosition.dx - center.dx;
+    final dy = localPosition.dy - center.dy;
+
+    final touchAngle = atan2(dy, dx);
+    final touchDistance = sqrt(dx * dx + dy * dy);
+    final radius = size.width / 2;
+
+    if (touchDistance > radius * 0.15 && touchDistance < radius * 1.05) {
+      double normTouch = (touchAngle + 2 * pi) % (2 * pi);
+      double normHour = (hourAngle + 2 * pi) % (2 * pi);
+      double normMinute = (minuteAngle + 2 * pi) % (2 * pi);
+      double normSecond = (secondAngle + 2 * pi) % (2 * pi);
+
+      double diffHour = _angularDifference(normTouch, normHour);
+      double diffMinute = _angularDifference(normTouch, normMinute);
+      double diffSecond = widget.showSeconds ? _angularDifference(normTouch, normSecond) : double.infinity;
+
+      final hourLength = radius * (widget.use24HourFormat ? (_selectedHour >= 13 || _selectedHour == 0 ? 0.82 : 0.52) : 0.76);
+      final minuteLength = radius * 0.76;
+      final secondLength = radius * 0.82;
+
+      double costHour = diffHour * 0.4 + (touchDistance - hourLength).abs() / radius;
+      double costMinute = diffMinute * 0.4 + (touchDistance - minuteLength).abs() / radius;
+      double costSecond = widget.showSeconds ? (diffSecond * 0.4 + (touchDistance - secondLength).abs() / radius) : double.infinity;
+
+      if (costHour < costMinute && costHour < costSecond) {
+        if (_currentMode != PickerMode.hour) {
+          HapticFeedback.selectionClick();
+          setState(() => _currentMode = PickerMode.hour);
+        }
+      } else if (costMinute < costHour && costMinute < costSecond) {
+        if (_currentMode != PickerMode.minute) {
+          HapticFeedback.selectionClick();
+          setState(() => _currentMode = PickerMode.minute);
+        }
+      } else if (widget.showSeconds && costSecond < costHour && costSecond < costMinute) {
+        if (_currentMode != PickerMode.second) {
+          HapticFeedback.selectionClick();
+          setState(() => _currentMode = PickerMode.second);
+        }
+      }
+    }
+  }
+
+  double _angularDifference(double a, double b) {
+    double diff = (a - b).abs();
+    return diff > pi ? 2 * pi - diff : diff;
+  }
+
+  String _getPeriodName() {
+    int h = _selectedHour;
+    if (!widget.use24HourFormat) {
+      if (isAM) {
+        h = _selectedHour == 12 ? 0 : _selectedHour;
+      } else {
+        h = _selectedHour == 12 ? 12 : _selectedHour + 12;
+      }
+    }
+
+    if (h >= 5 && h < 12) {
+      return "Morning";
+    } else if (h >= 12 && h < 17) {
+      return "Afternoon";
+    } else if (h >= 17 && h < 21) {
+      return "Evening";
+    } else {
+      return "Night";
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final primaryColor = widget.primaryColor ?? theme.colorScheme.primary;
     final backgroundColor = widget.backgroundColor ?? theme.dialogBackgroundColor;
+
+    final isModern = widget.pickerStyle == TimePickerStyle.modernCard;
 
     return Dialog(
       shape: RoundedRectangleBorder(
@@ -146,60 +298,86 @@ class _CustomTimePickerState extends State<CustomTimePicker> {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            // Header: Title
-            if (widget.showTitle) ...[
-              Align(
-                alignment: widget.titlePosition ?? Alignment.center,
-                child: Padding(
-                  padding: widget.titlePadding ?? const EdgeInsets.only(bottom: 16),
-                  child: Text(
-                    widget.titleText ?? "SELECT TIME",
-                    textAlign: widget.titleAlignment ?? TextAlign.center,
-                    style: widget.titleStyle ?? TextStyle(
-                      fontSize: 12,
-                      fontWeight: FontWeight.bold,
-                      letterSpacing: 1.5,
-                      color: widget.textColor?.withOpacity(0.6) ?? theme.colorScheme.onSurface.withOpacity(0.6),
+            if (isModern) ...[
+              if (widget.showTitle) ...[
+                Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      widget.titleText ?? "SELECT TIME",
+                      textAlign: widget.titleAlignment ?? TextAlign.center,
+                      style: widget.titleStyle ?? TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w700,
+                        color: widget.textColor ?? theme.colorScheme.onSurface,
+                      ),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      theme.brightness == Brightness.dark ? "Sleek Dark Mode" : "Clean Light Mode",
+                      style: TextStyle(
+                        fontSize: 11,
+                        fontWeight: FontWeight.w500,
+                        color: (widget.textColor ?? theme.colorScheme.onSurface).withOpacity(0.5),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 16),
+              ],
+              _buildModernDigitalDisplay(),
+              const SizedBox(height: 16),
+            ] else ...[
+              if (widget.showTitle) ...[
+                Align(
+                  alignment: widget.titlePosition ?? Alignment.center,
+                  child: Padding(
+                    padding: widget.titlePadding ?? const EdgeInsets.only(bottom: 16),
+                    child: Text(
+                      widget.titleText ?? "SELECT TIME",
+                      textAlign: widget.titleAlignment ?? TextAlign.center,
+                      style: widget.titleStyle ?? TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.bold,
+                        letterSpacing: 1.5,
+                        color: widget.textColor?.withOpacity(0.6) ?? theme.colorScheme.onSurface.withOpacity(0.6),
+                      ),
                     ),
                   ),
                 ),
+              ],
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  _buildTimeSegment(PickerMode.hour),
+                  _buildSeparator(),
+                  _buildTimeSegment(PickerMode.minute),
+                  if (widget.showSeconds) ...[
+                    _buildSeparator(),
+                    _buildTimeSegment(PickerMode.second),
+                  ],
+                  if (!widget.use24HourFormat) ...[
+                    SizedBox(width: widget.showSeconds ? 6 : 12),
+                    Container(
+                      width: widget.showSeconds ? 40 : 54,
+                      decoration: BoxDecoration(
+                        color: widget.dialBackgroundColor ?? theme.colorScheme.surfaceVariant.withOpacity(0.5),
+                        borderRadius: widget.segmentBorderRadius ?? BorderRadius.circular(12),
+                      ),
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          _buildAmPmButton(true),
+                          _buildAmPmButton(false),
+                        ],
+                      ),
+                    ),
+                  ],
+                ],
               ),
+              const SizedBox(height: 24),
             ],
 
-            // Header: Selected Time text
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                _buildTimeSegment(PickerMode.hour),
-                _buildSeparator(),
-                _buildTimeSegment(PickerMode.minute),
-                if (widget.showSeconds) ...[
-                  _buildSeparator(),
-                  _buildTimeSegment(PickerMode.second),
-                ],
-                if (!widget.use24HourFormat) ...[
-                  SizedBox(width: widget.showSeconds ? 6 : 12),
-                  Container(
-                    width: widget.showSeconds ? 40 : 54,
-                    decoration: BoxDecoration(
-                      color: widget.dialBackgroundColor ?? theme.colorScheme.surfaceVariant.withOpacity(0.5),
-                      borderRadius: widget.segmentBorderRadius ?? BorderRadius.circular(12),
-                    ),
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        _buildAmPmButton(true),
-                        _buildAmPmButton(false),
-                      ],
-                    ),
-                  ),
-                ],
-              ],
-            ),
-
-            const SizedBox(height: 24),
-
-            // Center: The Clock Dial
             LayoutBuilder(
               builder: (context, constraints) {
                 final size = constraints.maxWidth;
@@ -209,10 +387,18 @@ class _CustomTimePickerState extends State<CustomTimePicker> {
                     width: size,
                     height: size,
                     child: GestureDetector(
-                      onPanDown: (details) =>
-                          _handleDrag(details.localPosition, Size(size, size)),
-                      onPanStart: (details) =>
-                          _handleDrag(details.localPosition, Size(size, size)),
+                      onPanDown: (details) {
+                        if (isModern) {
+                          _selectModeFromTouch(details.localPosition, Size(size, size));
+                        }
+                        _handleDrag(details.localPosition, Size(size, size));
+                      },
+                      onPanStart: (details) {
+                        if (isModern) {
+                          _selectModeFromTouch(details.localPosition, Size(size, size));
+                        }
+                        _handleDrag(details.localPosition, Size(size, size));
+                      },
                       onPanUpdate: (details) =>
                           _handleDrag(details.localPosition, Size(size, size)),
                       onPanEnd: (details) => _handleDragEnd(),
@@ -221,6 +407,10 @@ class _CustomTimePickerState extends State<CustomTimePicker> {
                         size: Size(size, size),
                         painter: ClockPainter(
                           angle: _getCurrentAngle(),
+                          hourAngle: hourAngle,
+                          minuteAngle: minuteAngle,
+                          secondAngle: secondAngle,
+                          pickerStyle: widget.pickerStyle,
                           dialColor: widget.dialBackgroundColor ?? theme.colorScheme.surfaceVariant.withOpacity(0.3),
                           dialTextColor: widget.dialTextColor ?? theme.colorScheme.onSurface,
                           dialSelectedTextColor: widget.dialSelectedTextColor ?? theme.colorScheme.onPrimary,
@@ -234,6 +424,12 @@ class _CustomTimePickerState extends State<CustomTimePicker> {
                           selectedMinute: _selectedMinute,
                           selectedSecond: _selectedSecond,
                           use24HourFormat: widget.use24HourFormat,
+                          showSeconds: widget.showSeconds,
+                          isAM: isAM,
+                          periodName: _getPeriodName(),
+                          centerLabelStyle: widget.centerLabelStyle,
+                          centerTimeStyle: widget.centerTimeStyle,
+                          centerPeriodStyle: widget.centerPeriodStyle,
                         ),
                       ),
                     ),
@@ -244,37 +440,67 @@ class _CustomTimePickerState extends State<CustomTimePicker> {
 
             const SizedBox(height: 24),
 
-            // Footer: Cancel/OK actions
-            Row(
-              mainAxisAlignment: MainAxisAlignment.end,
-              children: [
-                TextButton(
-                  onPressed: () => Navigator.pop(context),
-                  style: TextButton.styleFrom(
-                    foregroundColor: widget.textColor ?? theme.colorScheme.secondary,
-                  ),
-                  child: const Text("Cancel", style: TextStyle(fontWeight: FontWeight.bold)),
-                ),
-                const SizedBox(width: 8),
-                ElevatedButton(
-                  onPressed: _onOkPressed,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: primaryColor,
-                    foregroundColor: widget.dialSelectedTextColor ?? theme.colorScheme.onPrimary,
-                    elevation: 0,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(20),
+            if (isModern) ...[
+              Center(
+                child: Padding(
+                  padding: const EdgeInsets.only(top: 8),
+                  child: SizedBox(
+                    width: 160,
+                    height: 46,
+                    child: OutlinedButton(
+                      onPressed: _onOkPressed,
+                      style: OutlinedButton.styleFrom(
+                        side: BorderSide(color: primaryColor.withOpacity(0.6), width: 1.5),
+                        shape: const StadiumBorder(),
+                        backgroundColor: primaryColor.withOpacity(0.05),
+                        elevation: 0,
+                      ),
+                      child: Text(
+                        "CONFIRM",
+                        style: TextStyle(
+                          fontWeight: FontWeight.w800,
+                          letterSpacing: 1.5,
+                          fontSize: 14,
+                          color: widget.textColor ?? primaryColor,
+                        ),
+                      ),
                     ),
                   ),
-                  child: const Text("OK", style: TextStyle(fontWeight: FontWeight.bold)),
                 ),
-              ],
-            )
+              )
+            ] else ...[
+              Row(
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: [
+                  TextButton(
+                    onPressed: () => Navigator.pop(context),
+                    style: TextButton.styleFrom(
+                      foregroundColor: widget.textColor ?? theme.colorScheme.secondary,
+                    ),
+                    child: const Text("Cancel", style: TextStyle(fontWeight: FontWeight.bold)),
+                  ),
+                  const SizedBox(width: 8),
+                  ElevatedButton(
+                    onPressed: _onOkPressed,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: primaryColor,
+                      foregroundColor: widget.dialSelectedTextColor ?? theme.colorScheme.onPrimary,
+                      elevation: 0,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                    ),
+                    child: const Text("OK", style: TextStyle(fontWeight: FontWeight.bold)),
+                  ),
+                ],
+              )
+            ]
           ],
         ),
       ),
     );
   }
+
 
   Widget _buildAmPmButton(bool isAm) {
     final bool isSelected = isAm ? isAM : !isAM;
@@ -526,6 +752,10 @@ class _CustomTimePickerState extends State<CustomTimePicker> {
 
 class ClockPainter extends CustomPainter {
   final double angle;
+  final double hourAngle;
+  final double minuteAngle;
+  final double secondAngle;
+  final TimePickerStyle pickerStyle;
   final Color dialColor;
   final Color dialTextColor;
   final Color dialSelectedTextColor;
@@ -539,9 +769,19 @@ class ClockPainter extends CustomPainter {
   final int selectedMinute;
   final int selectedSecond;
   final bool use24HourFormat;
+  final bool showSeconds;
+  final bool isAM;
+  final String periodName;
+  final TextStyle? centerLabelStyle;
+  final TextStyle? centerTimeStyle;
+  final TextStyle? centerPeriodStyle;
 
   const ClockPainter({
     required this.angle,
+    required this.hourAngle,
+    required this.minuteAngle,
+    required this.secondAngle,
+    required this.pickerStyle,
     required this.dialColor,
     required this.dialTextColor,
     required this.dialSelectedTextColor,
@@ -555,12 +795,19 @@ class ClockPainter extends CustomPainter {
     required this.selectedMinute,
     required this.selectedSecond,
     required this.use24HourFormat,
+    required this.showSeconds,
+    required this.isAM,
+    required this.periodName,
+    this.centerLabelStyle,
+    this.centerTimeStyle,
+    this.centerPeriodStyle,
   });
 
   @override
   void paint(Canvas canvas, Size size) {
     final center = Offset(size.width / 2, size.height / 2);
     final radius = size.width / 2;
+    final isModern = pickerStyle == TimePickerStyle.modernCard;
 
     // 1. Draw dial background
     final backgroundPaint = Paint()
@@ -575,7 +822,21 @@ class ClockPainter extends CustomPainter {
       ..strokeWidth = 1.5;
     canvas.drawCircle(center, radius, borderPaint);
 
-    // 3. Draw tick marks
+    // 3. Draw ambient back-light glow in modern style
+    if (isModern) {
+      final glowPaint = Paint()
+        ..shader = RadialGradient(
+          colors: [
+            primaryColor.withOpacity(0.16),
+            primaryColor.withOpacity(0.03),
+            Colors.transparent,
+          ],
+          stops: const [0.0, 0.65, 1.0],
+        ).createShader(Rect.fromCircle(center: center, radius: radius * 0.9));
+      canvas.drawCircle(center, radius * 0.9, glowPaint);
+    }
+
+    // 4. Draw tick marks
     final tickPaint = Paint()..strokeCap = StrokeCap.round;
     for (int i = 0; i < 60; i++) {
       final isHourTick = i % 5 == 0;
@@ -601,7 +862,7 @@ class ClockPainter extends CustomPainter {
       textDirection: TextDirection.ltr,
     );
 
-    // 4. Draw background numbers
+    // 5. Draw background numbers
     switch (currentMode) {
       case PickerMode.hour:
         _drawHourNumbers(canvas, center, radius, textPainter, isWhite: false);
@@ -614,92 +875,283 @@ class ClockPainter extends CustomPainter {
         break;
     }
 
-    // 5. Draw selector hand
-    double handLength = radius * 0.76;
-    if (currentMode == PickerMode.hour && use24HourFormat) {
-      if (selectedHour == 0 || selectedHour >= 13) {
-        handLength = radius * 0.82;
-      } else {
-        handLength = radius * 0.52;
+    // 6. Draw Hands
+    if (isModern) {
+      // Draw all three hands with appropriate opacities
+      final activeColor = handColor ?? primaryColor;
+      final inactiveColor = dialTextColor.withOpacity(0.15);
+
+      // Hour hand angle calculations
+      double hLength = radius * 0.48;
+      if (use24HourFormat) {
+        hLength = (selectedHour == 0 || selectedHour >= 13) ? radius * 0.82 : radius * 0.52;
+      }
+      final hColor = currentMode == PickerMode.hour ? activeColor : inactiveColor;
+      _drawTaperedHand(canvas, center, hourAngle, hLength, 5.0, 1.2, hColor);
+
+      // Minute hand angle calculations
+      final mLength = radius * 0.72;
+      final mColor = currentMode == PickerMode.minute ? activeColor : inactiveColor;
+      _drawTaperedHand(canvas, center, minuteAngle, mLength, 3.8, 0.9, mColor);
+
+      // Second hand angle calculations (only if showSeconds is true)
+      if (showSeconds) {
+        final sLength = radius * 0.80;
+        final sColor = currentMode == PickerMode.second ? activeColor : inactiveColor;
+        _drawTaperedHand(canvas, center, secondAngle, sLength, 1.5, 0.5, sColor);
+      }
+
+      // Draw center pivot dot
+      final pivotPaint = Paint()
+        ..color = currentMode == PickerMode.hour ? activeColor : inactiveColor
+        ..style = PaintingStyle.fill;
+      canvas.drawCircle(center, centerDotRadius ?? 4.0, pivotPaint);
+
+      // Draw active hand's selection tip bubble
+      double activeLength = radius * 0.76;
+      if (currentMode == PickerMode.hour) {
+        activeLength = hLength;
+      } else if (currentMode == PickerMode.minute) {
+        activeLength = mLength;
+      } else if (currentMode == PickerMode.second) {
+        activeLength = radius * 0.80;
+      }
+
+      final activeAngle = angle;
+      final handEnd = Offset(
+        center.dx + activeLength * cos(activeAngle),
+        center.dy + activeLength * sin(activeAngle),
+      );
+
+      // Draw selection tip bubble
+      final selectionPaint = Paint()
+        ..color = selectionBubbleColor ?? primaryColor
+        ..style = PaintingStyle.fill;
+      canvas.drawCircle(handEnd, 18, selectionPaint);
+
+      // Clip and paint highlighted number inside bubble
+      canvas.save();
+      canvas.clipPath(
+        Path()
+          ..addOval(
+            Rect.fromCircle(
+              center: handEnd,
+              radius: 18,
+            ),
+          ),
+      );
+
+      switch (currentMode) {
+        case PickerMode.hour:
+          _drawHourNumbers(canvas, center, radius, textPainter, isWhite: true);
+          break;
+        case PickerMode.minute:
+          _drawMinuteNumbers(canvas, center, radius, textPainter, isWhite: true);
+          break;
+        case PickerMode.second:
+          _drawSecondNumbers(canvas, center, radius, textPainter, isWhite: true);
+          break;
+      }
+
+      canvas.restore();
+
+      // Draw center inner circle card
+      final innerRadius = radius * 0.44;
+      final innerCardPaint = Paint()
+        ..color = dialColor.withAlpha(250) // Solid card feel
+        ..style = PaintingStyle.fill;
+      canvas.drawCircle(center, innerRadius, innerCardPaint);
+
+      // Subtle inner shadow border
+      final innerBorderPaint = Paint()
+        ..color = dialTextColor.withOpacity(0.08)
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 1.5;
+      canvas.drawCircle(center, innerRadius, innerBorderPaint);
+
+      // Paint text centered in the inner card
+      // Line 1: Set Time Label
+      textPainter.text = TextSpan(
+        text: "Set Time:",
+        style: centerLabelStyle ?? TextStyle(
+          fontSize: 10,
+          fontWeight: FontWeight.w600,
+          color: dialTextColor.withOpacity(0.4),
+          letterSpacing: 0.5,
+        ),
+      );
+      textPainter.layout();
+      textPainter.paint(
+        canvas,
+        Offset(center.dx - textPainter.width / 2, center.dy - 22),
+      );
+
+      // Line 2: Digital Time Readout
+      final hourStr = selectedHour.toString().padLeft(2, '0');
+      final minStr = selectedMinute.toString().padLeft(2, '0');
+      final secStr = selectedSecond.toString().padLeft(2, '0');
+      String timeStr = showSeconds ? "$hourStr:$minStr:$secStr" : "$hourStr:$minStr";
+      if (!use24HourFormat) {
+        timeStr += isAM ? " AM" : " PM";
+      }
+
+      textPainter.text = TextSpan(
+        text: timeStr,
+        style: centerTimeStyle ?? TextStyle(
+          fontSize: 15,
+          fontWeight: FontWeight.w700,
+          color: dialTextColor,
+          letterSpacing: 0.5,
+        ),
+      );
+      textPainter.layout();
+      textPainter.paint(
+        canvas,
+        Offset(center.dx - textPainter.width / 2, center.dy - 4),
+      );
+
+      // Line 3: Period Name (Morning/Night etc.)
+      textPainter.text = TextSpan(
+        text: periodName,
+        style: centerPeriodStyle ?? TextStyle(
+          fontSize: 10,
+          fontWeight: FontWeight.w500,
+          color: dialTextColor.withOpacity(0.5),
+        ),
+      );
+      textPainter.layout();
+      textPainter.paint(
+        canvas,
+        Offset(center.dx - textPainter.width / 2, center.dy + 14),
+      );
+
+    } else {
+      // Standard layout: single hand
+      double handLength = radius * 0.76;
+      if (currentMode == PickerMode.hour && use24HourFormat) {
+        if (selectedHour == 0 || selectedHour >= 13) {
+          handLength = radius * 0.82;
+        } else {
+          handLength = radius * 0.52;
+        }
+      }
+      final handEnd = Offset(
+        center.dx + handLength * cos(angle),
+        center.dy + handLength * sin(angle),
+      );
+
+      final handPaint = Paint()
+        ..color = handColor ?? primaryColor
+        ..strokeWidth = strokeWidth ?? 2
+        ..strokeCap = StrokeCap.round;
+
+      canvas.drawLine(center, handEnd, handPaint);
+      canvas.drawCircle(center, centerDotRadius ?? 5, handPaint);
+
+      // Draw hand's outer selection bubble
+      final selectionPaint = Paint()
+        ..color = selectionBubbleColor ?? primaryColor
+        ..style = PaintingStyle.fill;
+      canvas.drawCircle(handEnd, 22, selectionPaint);
+
+      // Clip to selection bubble and draw highlighted white numbers
+      canvas.save();
+      canvas.clipPath(
+        Path()
+          ..addOval(
+            Rect.fromCircle(
+              center: handEnd,
+              radius: 22,
+            ),
+          ),
+      );
+
+      switch (currentMode) {
+        case PickerMode.hour:
+          _drawHourNumbers(canvas, center, radius, textPainter, isWhite: true);
+          break;
+        case PickerMode.minute:
+          _drawMinuteNumbers(canvas, center, radius, textPainter, isWhite: true);
+          break;
+        case PickerMode.second:
+          _drawSecondNumbers(canvas, center, radius, textPainter, isWhite: true);
+          break;
+      }
+
+      canvas.restore();
+
+      // Draw center inner point inside selection bubble only if hand isn't snapped directly over a label
+      final currentDegrees = (angle * 180 / pi + 360) % 360;
+      bool isOnNumber = false;
+
+      switch (currentMode) {
+        case PickerMode.hour:
+          for (int i = 1; i <= 12; i++) {
+            final numberDegrees = (i * 30) % 360;
+            if ((currentDegrees - numberDegrees).abs() < 5) {
+              isOnNumber = true;
+              break;
+            }
+          }
+          break;
+        case PickerMode.minute:
+        case PickerMode.second:
+          for (int i = 0; i < 60; i += 5) {
+            final numberDegrees = (i * 6) % 360;
+            if ((currentDegrees - numberDegrees).abs() < 2.5) {
+              isOnNumber = true;
+              break;
+            }
+          }
+          break;
+      }
+
+      if (!isOnNumber) {
+        final dotPaint = Paint()
+          ..color = dialSelectedTextColor
+          ..style = PaintingStyle.fill;
+        canvas.drawCircle(handEnd, 4, dotPaint);
       }
     }
-    final handEnd = Offset(
-      center.dx + handLength * cos(angle),
-      center.dy + handLength * sin(angle),
+  }
+
+  void _drawTaperedHand(Canvas canvas, Offset center, double angle, double length, double baseWidth, double tipWidth, Color color) {
+    final path = Path();
+    final cosA = cos(angle);
+    final sinA = sin(angle);
+    final cosAOrth = cos(angle + pi / 2);
+    final sinAOrth = sin(angle + pi / 2);
+
+    // Base coordinates
+    final baseLeft = Offset(
+      center.dx + baseWidth * cosAOrth,
+      center.dy + baseWidth * sinAOrth,
+    );
+    final baseRight = Offset(
+      center.dx - baseWidth * cosAOrth,
+      center.dy - baseWidth * sinAOrth,
     );
 
-    final handPaint = Paint()
-      ..color = handColor ?? primaryColor
-      ..strokeWidth = strokeWidth ?? 2
-      ..strokeCap = StrokeCap.round;
+    // Tip coordinates
+    final tipLeft = Offset(
+      center.dx + length * cosA + tipWidth * cosAOrth,
+      center.dy + length * sinA + tipWidth * sinAOrth,
+    );
+    final tipRight = Offset(
+      center.dx + length * cosA - tipWidth * cosAOrth,
+      center.dy + length * sinA - tipWidth * sinAOrth,
+    );
 
-    canvas.drawLine(center, handEnd, handPaint);
-    canvas.drawCircle(center, centerDotRadius ?? 5, handPaint);
+    path.moveTo(baseLeft.dx, baseLeft.dy);
+    path.lineTo(tipLeft.dx, tipLeft.dy);
+    path.lineTo(tipRight.dx, tipRight.dy);
+    path.lineTo(baseRight.dx, baseRight.dy);
+    path.close();
 
-    // 6. Draw hand's outer selection bubble
-    final selectionPaint = Paint()
-      ..color = selectionBubbleColor ?? primaryColor
+    final paint = Paint()
+      ..color = color
       ..style = PaintingStyle.fill;
-    canvas.drawCircle(handEnd, 22, selectionPaint);
-
-    // 7. Clip to selection bubble and draw highlighted white numbers
-    canvas.save();
-    canvas.clipPath(
-      Path()
-        ..addOval(
-          Rect.fromCircle(
-            center: handEnd,
-            radius: 22,
-          ),
-        ),
-    );
-
-    switch (currentMode) {
-      case PickerMode.hour:
-        _drawHourNumbers(canvas, center, radius, textPainter, isWhite: true);
-        break;
-      case PickerMode.minute:
-        _drawMinuteNumbers(canvas, center, radius, textPainter, isWhite: true);
-        break;
-      case PickerMode.second:
-        _drawSecondNumbers(canvas, center, radius, textPainter, isWhite: true);
-        break;
-    }
-
-    canvas.restore();
-
-    // 8. Draw center inner point inside selection bubble only if hand isn't snapped directly over a label
-    final currentDegrees = (angle * 180 / pi + 360) % 360;
-    bool isOnNumber = false;
-
-    switch (currentMode) {
-      case PickerMode.hour:
-        for (int i = 1; i <= 12; i++) {
-          final numberDegrees = (i * 30) % 360;
-          if ((currentDegrees - numberDegrees).abs() < 5) {
-            isOnNumber = true;
-            break;
-          }
-        }
-        break;
-      case PickerMode.minute:
-      case PickerMode.second:
-        for (int i = 0; i < 60; i += 5) {
-          final numberDegrees = (i * 6) % 360;
-          if ((currentDegrees - numberDegrees).abs() < 2.5) {
-            isOnNumber = true;
-            break;
-          }
-        }
-        break;
-    }
-
-    if (!isOnNumber) {
-      final dotPaint = Paint()
-        ..color = dialSelectedTextColor
-        ..style = PaintingStyle.fill;
-      canvas.drawCircle(handEnd, 4, dotPaint);
-    }
+    canvas.drawPath(path, paint);
   }
 
   void _drawHourNumbers(Canvas canvas, Offset center, double radius,
@@ -829,6 +1281,10 @@ class ClockPainter extends CustomPainter {
   @override
   bool shouldRepaint(covariant ClockPainter oldDelegate) {
     return oldDelegate.angle != angle ||
+        oldDelegate.hourAngle != hourAngle ||
+        oldDelegate.minuteAngle != minuteAngle ||
+        oldDelegate.secondAngle != secondAngle ||
+        oldDelegate.pickerStyle != pickerStyle ||
         oldDelegate.currentMode != currentMode ||
         oldDelegate.selectedHour != selectedHour ||
         oldDelegate.selectedMinute != selectedMinute ||
@@ -838,7 +1294,14 @@ class ClockPainter extends CustomPainter {
         oldDelegate.dialSelectedTextColor != dialSelectedTextColor ||
         oldDelegate.primaryColor != primaryColor ||
         oldDelegate.use24HourFormat != use24HourFormat ||
+        oldDelegate.showSeconds != showSeconds ||
+        oldDelegate.isAM != isAM ||
+        oldDelegate.periodName != periodName ||
         oldDelegate.handColor != handColor ||
-        oldDelegate.selectionBubbleColor != selectionBubbleColor;
+        oldDelegate.selectionBubbleColor != selectionBubbleColor ||
+        oldDelegate.centerLabelStyle != centerLabelStyle ||
+        oldDelegate.centerTimeStyle != centerTimeStyle ||
+        oldDelegate.centerPeriodStyle != centerPeriodStyle;
   }
 }
+
