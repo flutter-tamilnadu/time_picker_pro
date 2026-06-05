@@ -1,9 +1,15 @@
 name: time_picker_pro
 description: "A highly customizable Flutter custom clock time picker featuring seconds selection and 24-hour format support."
-version: 0.0.1
+version: 0.0.2
 homepage: https://github.com/flutter-tamilnadu/time_picker_pro
 repository: https://github.com/flutter-tamilnadu/time_picker_pro
 issue_tracker: https://github.com/flutter-tamilnadu/time_picker_pro/issues
+
+screenshots:
+  - description: "Default light-theme time picker showing hours, minutes, and seconds."
+    path: assets/time_picker_defualt.png
+  - description: "Customized dark-themed time picker showing seconds."
+    path: assets/time_picker_custom.png
 
 environment:
   sdk: ^3.11.0
