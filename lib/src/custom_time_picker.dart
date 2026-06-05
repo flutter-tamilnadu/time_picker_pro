@@ -99,38 +99,28 @@ class _CustomTimePickerState extends State<CustomTimePicker> {
   void initState() {
     super.initState();
 
-    // Initialize with provided time or defaults
-    if (widget.initialTime != null) {
-      final initTime = widget.initialTime!;
-      _selectedMinute = initTime.minute;
-      _selectedSecond = initTime.second;
+    // Initialize with provided time or fallback to current time
+    final initTime = widget.initialTime ?? TimeOfDayWithSeconds.now();
+    _selectedMinute = initTime.minute;
+    _selectedSecond = initTime.second;
 
-      if (widget.use24HourFormat) {
-        _selectedHour = initTime.hour; // 0 to 23
-        isAM = initTime.hour < 12;
+    if (widget.use24HourFormat) {
+      _selectedHour = initTime.hour; // 0 to 23
+      isAM = initTime.hour < 12;
 
-        // Determine angle
-        final h = _selectedHour;
-        final displayHour = (h == 0 || h == 12) ? 12 : (h > 12 ? h - 12 : h);
-        hourAngle = (displayHour * 30 - 90) * pi / 180;
-      } else {
-        _selectedHour = initTime.hourOfPeriod;
-        isAM = initTime.period == DayPeriod.am;
-        hourAngle = ((_selectedHour == 12 ? 0 : _selectedHour) * 30 - 90) * pi / 180;
-      }
-
-      // Update other angles
-      minuteAngle = (_selectedMinute * 6 - 90) * pi / 180;
-      secondAngle = (_selectedSecond * 6 - 90) * pi / 180;
+      // Determine angle
+      final h = _selectedHour;
+      final displayHour = (h == 0 || h == 12) ? 12 : (h > 12 ? h - 12 : h);
+      hourAngle = (displayHour * 30 - 90) * pi / 180;
     } else {
-      _selectedHour = 12;
-      _selectedMinute = 0;
-      _selectedSecond = 0;
-      isAM = true;
-      hourAngle = -pi / 2;
-      minuteAngle = -pi / 2;
-      secondAngle = -pi / 2;
+      _selectedHour = initTime.hourOfPeriod;
+      isAM = initTime.period == DayPeriod.am;
+      hourAngle = ((_selectedHour == 12 ? 0 : _selectedHour) * 30 - 90) * pi / 180;
     }
+
+    // Update other angles
+    minuteAngle = (_selectedMinute * 6 - 90) * pi / 180;
+    secondAngle = (_selectedSecond * 6 - 90) * pi / 180;
 
     // Set initial mode
     _currentMode = PickerMode.hour;
