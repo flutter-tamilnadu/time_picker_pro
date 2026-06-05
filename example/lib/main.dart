@@ -70,6 +70,7 @@ class _DemoHomeScreenState extends State<DemoHomeScreen> {
   TimeOfDayWithSeconds _time3 = const TimeOfDayWithSeconds(hour: 22, minute: 10, second: 15);
   TimeOfDayWithSeconds _time4 = const TimeOfDayWithSeconds(hour: 17, minute: 15, second: 45);
   TimeOfDayWithSeconds _time5 = const TimeOfDayWithSeconds(hour: 10, minute: 9, second: 0);
+  TimeOfDayWithSeconds _time6 = const TimeOfDayWithSeconds(hour: 10, minute: 9, second: 0);
 
   void _showStandardPicker() {
     showDialog(
@@ -117,21 +118,60 @@ class _DemoHomeScreenState extends State<DemoHomeScreen> {
     );
   }
 
-  void _showModernAnalogPicker() {
+  void _showClockPickerLight() {
     showDialog(
       context: context,
-      builder: (context) => CustomTimePicker(
-        initialTime: _time5,
-        showSeconds: true,
-        pickerStyle: TimePickerStyle.modernCard,
-        titleText: widget.themeMode == ThemeMode.light 
-            ? "White Theme Time Picker" 
-            : "Dark Theme Time Picker",
-        onTimeSelected: (time) {
-          setState(() {
-            _time5 = time;
-          });
-        },
+      builder: (context) => Dialog(
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        child: ClockTimePicker(
+          initialTime: _time5,
+          theme: ClockPickerThemeData.light(),
+          showSeconds: true,
+          title: "White Theme Time Picker",
+          subtitle: "Dark Grey",
+          description: "Clean White Theme\nSeconds & Concentric 24-Hour support",
+          onTimeChanged: (time) {
+            setState(() {
+              _time5 = time;
+            });
+          },
+          onConfirm: (time) {
+            setState(() {
+              _time5 = time;
+            });
+            Navigator.pop(context);
+          },
+        ),
+      ),
+    );
+  }
+
+  void _showClockPickerDark() {
+    showDialog(
+      context: context,
+      builder: (context) => Dialog(
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        child: ClockTimePicker(
+          initialTime: _time6,
+          theme: ClockPickerThemeData.dark(),
+          showSeconds: true,
+          title: "Dark Theme Time Picker",
+          subtitle: "White",
+          description: "Sleek Dark Mode Theme\nNeon glowing clock hand accents",
+          onTimeChanged: (time) {
+            setState(() {
+              _time6 = time;
+            });
+          },
+          onConfirm: (time) {
+            setState(() {
+              _time6 = time;
+            });
+            Navigator.pop(context);
+          },
+        ),
       ),
     );
   }
@@ -301,12 +341,21 @@ class _DemoHomeScreenState extends State<DemoHomeScreen> {
                       ),
                       const SizedBox(height: 16),
                       _buildShowcaseCard(
-                        title: 'Modern Analog Card Mode',
-                        subtitle: 'Sleek physical tapered hands layout',
+                        title: 'ClockTimePicker (Light Theme)',
+                        subtitle: 'Clean White Theme dialer style',
                         time: _time5,
                         hasSeconds: true,
-                        color: Colors.blueAccent,
-                        onTap: _showModernAnalogPicker,
+                        color: Colors.blue,
+                        onTap: _showClockPickerLight,
+                      ),
+                      const SizedBox(height: 16),
+                      _buildShowcaseCard(
+                        title: 'ClockTimePicker (Dark Theme)',
+                        subtitle: 'Sleek Dark Mode Theme dialer style',
+                        time: _time6,
+                        hasSeconds: true,
+                        color: const Color(0xFF14B8A6), // teal-500
+                        onTap: _showClockPickerDark,
                       ),
                       const SizedBox(height: 16),
                       _buildShowcaseCard(

@@ -109,7 +109,7 @@ void main() {
       expect(selectedTime!.second, 30);
     });
 
-    testWidgets('Renders properly in modernCard style and handles confirm', (WidgetTester tester) async {
+    testWidgets('ClockTimePicker renders properly and handles confirm', (WidgetTester tester) async {
       TimeOfDayWithSeconds? selectedTime;
 
       await tester.pumpWidget(
@@ -121,17 +121,18 @@ void main() {
                   onPressed: () {
                     showDialog(
                       context: context,
-                      builder: (context) => CustomTimePicker(
-                        pickerStyle: TimePickerStyle.modernCard,
+                      builder: (context) => ClockTimePicker(
                         initialTime: const TimeOfDayWithSeconds(hour: 10, minute: 9, second: 0),
                         showSeconds: true,
-                        onTimeSelected: (time) {
+                        title: "Test Clock Picker",
+                        onConfirm: (time) {
                           selectedTime = time;
+                          Navigator.pop(context);
                         },
                       ),
                     );
                   },
-                  child: const Text('Open Modern Picker'),
+                  child: const Text('Open Clock Picker'),
                 );
               },
             ),
@@ -140,10 +141,11 @@ void main() {
       );
 
       // Open the dialog
-      await tester.tap(find.text('Open Modern Picker'));
+      await tester.tap(find.text('Open Clock Picker'));
       await tester.pumpAndSettle();
 
-      // Verify modern layout elements are drawn
+      // Verify layout elements are drawn
+      expect(find.text('Test Clock Picker'), findsOneWidget);
       expect(find.text('10'), findsOneWidget); 
       expect(find.text('09'), findsOneWidget);
       expect(find.text('CONFIRM'), findsOneWidget);
