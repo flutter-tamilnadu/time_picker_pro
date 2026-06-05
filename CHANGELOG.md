@@ -1,3 +1,7 @@
+## 0.0.7
+
+* Convert video showcases to GIFs in README to ensure rendering support on pub.dev.
+
 ## 0.0.6
 
 * Use absolute raw GitHub URLs for video tags in README to ensure compatibility across all markdown renders.

@@ -19,13 +19,13 @@ This package fills that gap:
 
 ---
 
-## Showcase Screenshots & Videos
+## Showcase Demo & Screenshots
 
-### Interactive Video Demonstrations
+### Interactive Demonstrations (GIFs)
 <p align="center">
-  <video src="https://raw.githubusercontent.com/flutter-tamilnadu/time_picker_pro/main/assets/video_1.mp4" width="45%" controls></video>
+  <img src="assets/video_1.gif" width="45%" alt="Clean White Theme Demo" />
   &nbsp;&nbsp;&nbsp;&nbsp;
-  <video src="https://raw.githubusercontent.com/flutter-tamilnadu/time_picker_pro/main/assets/video_2.mp4" width="45%" controls></video>
+  <img src="assets/video_2.gif" width="45%" alt="Sleek Dark Mode Theme Demo" />
 </p>
 
 ### Clock Dial Themes
