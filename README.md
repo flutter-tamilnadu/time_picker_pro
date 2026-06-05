@@ -22,9 +22,9 @@ This package fills that gap:
 ## Showcase Screenshots
 
 <p align="center">
-  <img src="https://raw.githubusercontent.com/flutter-tamilnadu/time_picker_pro/main/assets/time_picker_defualt.png" width="45%" alt="Default Clock Theme" />
+  <img src="https://raw.githubusercontent.com/flutter-tamilnadu/time_picker_pro/main/assets/screenshot_1.png" width="45%" alt="Default Clock Theme" />
   &nbsp;&nbsp;&nbsp;&nbsp;
-  <img src="https://raw.githubusercontent.com/flutter-tamilnadu/time_picker_pro/main/assets/time_picker_custom.png" width="45%" alt="Highly Customized Theme" />
+  <img src="https://raw.githubusercontent.com/flutter-tamilnadu/time_picker_pro/main/assets/screenshot_3.png" width="45%" alt="Highly Customized Theme" />
 </p>
 
 ---
